@@ -7,6 +7,7 @@ https://en.wikipedia.org/wiki/Sersic_profile#
 '''
 
 NUM_ITERS = 50
+#TODO: add support for background partition
 
 def initialize_params(k, shape):
     width = shape[0]
@@ -23,7 +24,17 @@ def initialize_params(k, shape):
     return params
 
 def optim_params(pixel_partition, data):
-    pass
+    shape = pixel_partition.shape
+    k = shape[0]
+    params = []
+    
+    for i in range(0, k):
+        curr_partition = pixel_partition[i]
+        curr_data = np.multiply(curr_partition, data)
+        
+        #TODO: extract radius information from curr_data
+        #TODO: Use scipy curve_fit to fit to a sersic distribution with n and a values (b calculated from n)
+
 
 def optim_pixels(params, data):
     pass

@@ -30,9 +30,16 @@ def initialize_params(k, shape):
     return params
 
 # TODO: Have generate seperate files or layers in TIF based on pixel partition
-def write_output_partition(pixel_partition, data):
-    pass
-    
+def write_output_partition(pixel_partition, data, fits_fp):
+    data = 0 
+    #TODO: Write all and seperate output file
+    data = np.multiply(data, pixel_partition[0])
+
+
+    #Change file to 0th partition
+    with fits.open(fits_fp) as hdul:
+        hdul[0] = data
+        hdul.writeto(fits_fp, overwrite = True)
 
 def optim_pixels(params, data, background_partition):
     shape = data.shape
@@ -105,6 +112,7 @@ def sersic_curve(x, center_x, center_y, n1, a1, n2, a2):
     return y
 
 # TODO: Use center_x and center_y from mask, and do not change
+# TODO: Why is the partition error occuring here now
 def optim_params(initial_params, pixel_partition, data):
     shape = pixel_partition.shape
     k = shape[0]
@@ -129,7 +137,6 @@ def optim_params(initial_params, pixel_partition, data):
         params.append(params_i[0])
     
     return params
-
 
 
 def k_sersics(k, fits_fp, num_iters = None):

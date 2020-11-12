@@ -2,12 +2,14 @@ import os
 import numpy as np
 from astropy.io import fits
 from scipy.optimize import curve_fit
-import more_itertools import powerset
+from more_itertools import powerset
 
 '''
 Sersic distribution information
 https://en.wikipedia.org/wiki/Sersic_profile#
 '''
+
+#TODO: Move back to not optmizing center values
 
 #TODO: Search for good NUM_ITERS value
 NUM_ITERS = 50
@@ -50,53 +52,53 @@ def optim_pixels(params, data, background_partition):
 
     pixel_partition = np.zeros((k, width, height))
 
-        for ind_width in range(0, width):
-            for ind_height in range(0, height):
-                if (background_partition[width][height]):
+    for ind_width in range(0, width):
+        for ind_height in range(0, height):
+            if (background_partition[width][height]):
+                continue
+
+            pred = [] * k
+            expected = data[ind_width][ind_height]
+
+            for ind_sersic in range(0, k):
+                center_x = params[ind_sersic][0]
+                center_y = params[ind_sersic][1]
+                n1 = params[ind_sersic][2]
+                a1 = params[ind_sersic][3]
+                n2 = params[ind_sersic][4]
+                a2 = params[ind_sersic][5]
+
+                pred_curr = sersic_curve([ind_width, ind_height], center_x, center_y, n1, a1, n2, a2)
+                pred[ind_sersic] = pred_curr
+            
+            # Inefficient?
+            all_combs = list(powerset(range(0, k)))
+            optim_comb = None
+            optim_err = None
+            
+            # Gets sersics combination with lowest error
+            for comb in all_combs:
+                curr_pred = sum([pred[ind] for ind in comb])
+                curr_err = abs(expected - curr_pred)
+            
+                if optim_comb is None:
+                    optim_comb = comb
+                    optim_err = curr_err
                     continue
 
-                pred = [] * k
-                expected = data[ind_width][ind_height}
+                if curr_err < optim_err:
+                    optim_comb = comb
+                    optim_err = curr_err
 
-                for ind_sersic in range(0, k):
-                    center_x = params[ind_sersic][0]
-                    center_y = params[ind_sersic][1]
-                    n1 = params[ind_sersic][2]
-                    a1 = params[ind_sersic][3]
-                    n2 = params[ind_sersic][4]
-                    a2 = params[ind_sersic][5]
+            total_pred = sum([pred[ind] for ind in comb])
 
-                    pred_curr = sersic_curve([ind_width, ind_height], center_x, center_y, n1, a1, n2, a2)
-                    pred[ind_sersic] = pred_curr
-                
-                # Inefficient?
-                all_combs = list(powerset(range(0, k)))
-                optim_comb = None
-                optim_err = None
-                
-                # Gets sersics combination with lowest error
-                for comb in all_combs:
-                    curr_pred = sum([pred[ind] for ind in comb])
-                    curr_err = abs(expected - curr_pred)
-                
-                    if optim_comb is None:
-                        optim_comb = comb
-                        optim_err = curr_err
-                        continue
-
-                    if curr_err < optim_err:
-                        optim_comb = comb
-                        optim_err = curr_err
-
-                total_pred = sum([pred[ind] for ind in comb])
-
-                # Update Pixel Partition 
-                for ind_sersic in range(0, k):
-                    if ind_sersic in optim_comb:
-                        curr_val = float(pred[ind_sersic]) / float(total_pred)
-                        pixel_partition[ind_sersic, ind_width, ind_height] = curr_val
-                    else:
-                        pixel_partition[ind_sersic, ind_width, ind_height] = 0
+            # Update Pixel Partition 
+            for ind_sersic in range(0, k):
+                if ind_sersic in optim_comb:
+                    curr_val = float(pred[ind_sersic]) / float(total_pred)
+                    pixel_partition[ind_sersic, ind_width, ind_height] = curr_val
+                else:
+                    pixel_partition[ind_sersic, ind_width, ind_height] = 0
 
     return pixel_partition
 

@@ -51,6 +51,7 @@ def optim_pixels(params, data, background_partition):
     k = len(params)
 
     pixel_partition = np.zeros((k, width, height))
+    print("Start")
 
     for ind_width in range(0, width):
         for ind_height in range(0, height):
@@ -99,6 +100,8 @@ def optim_pixels(params, data, background_partition):
                     pixel_partition[ind_sersic, ind_width, ind_height] = curr_val
                 else:
                     pixel_partition[ind_sersic, ind_width, ind_height] = 0
+
+    print("Done")
 
     return pixel_partition
 

@@ -54,10 +54,10 @@ def optim_pixels(params, data, background_partition):
 
     for ind_width in range(0, width):
         for ind_height in range(0, height):
-            if (background_partition[width][height]):
+            if (background_partition[ind_width][ind_height]):
                 continue
 
-            pred = [] * k
+            pred = [None] * k
             expected = data[ind_width][ind_height]
 
             for ind_sersic in range(0, k):
@@ -108,10 +108,12 @@ def sersic_curve(x, center_x, center_y, n1, a1, n2, a2):
     center = np.asarray([center_x, center_y])
     r = np.linalg.norm(center - x)
 
-    b = 2 * (n ** (-1/3))
+    b1 = 2 * (n1 ** (-1/3))
+    b2 = 2 * (n2 ** (-1/3))
 
-    y = a * (np.exp(-b * r * (n ** (-1))))
-    return y
+    y1 = a1 * (np.exp(-b1 * r * (n1 ** (-1))))
+    y2 = a2 * (np.exp(-b2 * r * (n2 ** (-1))))
+    return y1+y2
 
 # TODO: Use center_x and center_y from mask, and do not change
 # TODO: Why is the partition error occuring here now
